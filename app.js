@@ -1,5 +1,26 @@
 let {PythonShell} = require('python-shell');
 
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+
+function generateCSV(){
+
+    // let myArrayOfStrings = array.split(',');
+    let arrayOfValues = delays.map(function(x) {
+        return {value:parseInt(x)}
+    });
+
+    const csvWriter = createCsvWriter({
+        path: 'out400avgPayload.csv',
+        header: [
+            {id: 'value', title: 'Value'}
+        ]
+    });
+
+    csvWriter
+        .writeRecords(arrayOfValues)
+        .then(()=> console.log('The CSV file was written successfully'));
+}
+
 // Configuration object
 let defaultOptions = {
     mode: 'text',
@@ -7,6 +28,9 @@ let defaultOptions = {
     pythonOptions: ['-u'], // get print results in real-time
     args: ['1', '2', '3']
 };
+
+let delays = [];
+
 class PythonInterpreter{
 
     static spawn(url, onMessageCallback, options = defaultOptions){
@@ -30,9 +54,37 @@ class PythonInterpreter{
 
 }
 
-let myInterpreter = PythonInterpreter.spawn("script.py", (message) => {
-    console.log(message);
-})
+let myInterpreter = PythonInterpreter.spawn("script.py", receiveMessage)
 
-setInterval(() => {myInterpreter.send("Hello!!")}, 500)
+function receiveMessage(message) {
+
+
+    let currentTime = Date.now();
+    let receivedTime = Number(message)
+
+    let timedifference = currentTime - receivedTime;
+
+    console.log("TimeDiff:" + timedifference);
+
+    delays.push(timedifference);
+
+    if(delays.length === 1000){
+        generateCSV()
+        clearInterval(timer);
+        console.log((delays.reduce((sum, el) => {return sum + el}))/1000);
+    }
+
+}
+function sendMessage() {
+
+    let myJSON = {
+        timestamp: Date.now(),
+        data1: "abcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsss",
+        data2: "abcdefghijklmnoprsss"
+    }
+
+    myInterpreter.send(JSON.stringify(myJSON))
+}
+
+let timer = setInterval(sendMessage, 10)
 
