@@ -1,4 +1,5 @@
 let {PythonShell} = require('python-shell');
+var microtime = require('microtime')
 
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
@@ -10,7 +11,7 @@ function generateCSV(){
     });
 
     const csvWriter = createCsvWriter({
-        path: 'out400avgPayload.csv',
+        path: 'outRadeksPayload.csv',
         header: [
             {id: 'value', title: 'Value'}
         ]
@@ -59,7 +60,7 @@ let myInterpreter = PythonInterpreter.spawn("script.py", receiveMessage)
 function receiveMessage(message) {
 
 
-    let currentTime = Date.now();
+    let currentTime = microtime.now()
     let receivedTime = Number(message)
 
     let timedifference = currentTime - receivedTime;
@@ -78,9 +79,9 @@ function receiveMessage(message) {
 function sendMessage() {
 
     let myJSON = {
-        timestamp: Date.now(),
-        data1: "abcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsssabcdefghijklmnoprsss",
-        data2: "abcdefghijklmnoprsss"
+        timestamp: microtime.now(),
+        data1: "9876543",
+        data2: "876543"
     }
 
     myInterpreter.send(JSON.stringify(myJSON))
