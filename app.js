@@ -6,12 +6,12 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 function generateCSV(){
 
     // let myArrayOfStrings = array.split(',');
-    let arrayOfValues = delays.map(function(x) {
+    let arrayOfValues = diffs.map(function(x) {
         return {value:parseInt(x)}
     });
 
     const csvWriter = createCsvWriter({
-        path: 'outRadeksPayload.csv',
+        path: 'MicroDataDay2.csv',
         header: [
             {id: 'value', title: 'Value'}
         ]
@@ -27,12 +27,14 @@ let defaultOptions = {
     mode: 'text',
     scriptPath: './',
     pythonOptions: ['-u'], // get print results in real-time
-    args: ['1', '2', '3']
 };
 
 let delays = [];
+let diffs = [];
+let messageCounter = 0;
 
 class PythonInterpreter{
+
 
     static spawn(url, onMessageCallback, options = defaultOptions){
 
@@ -60,32 +62,39 @@ let myInterpreter = PythonInterpreter.spawn("script.py", receiveMessage)
 function receiveMessage(message) {
 
 
-    let currentTime = microtime.now()
-    let receivedTime = Number(message)
+    let messageObject = JSON.parse(message);
 
-    let timedifference = currentTime - receivedTime;
 
-    console.log("TimeDiff:" + timedifference);
 
-    delays.push(timedifference);
+        delays[messageObject.id].stop = microtime.now();
+        delays[messageObject.id].diff = delays[messageObject.id].stop - delays[messageObject.id].start;
+        diffs.push(delays[messageObject.id].diff);
 
-    if(delays.length === 1000){
-        generateCSV()
-        clearInterval(timer);
-        console.log((delays.reduce((sum, el) => {return sum + el}))/1000);
-    }
+        if(diffs.length === 100){
+            generateCSV()
+            clearInterval(timer);
+            console.log((diffs.reduce((sum, el) => {return sum + el}))/100);
+
+        }
+
 
 }
 function sendMessage() {
 
     let myJSON = {
-        timestamp: microtime.now(),
-        data1: "9876543",
-        data2: "876543"
+        data1: `1234567890`,
+        id: messageCounter,
+        start: microtime.now(),
+        data2: `2.783715859041540064e-01`
     }
 
+
     myInterpreter.send(JSON.stringify(myJSON))
+    delays.push(myJSON);
+
+    messageCounter++;
+
 }
 
-let timer = setInterval(sendMessage, 10)
+let timer = setInterval(sendMessage, 200)
 
